@@ -1092,3 +1092,558 @@ class App extends React.Component{
 }
 ```
 
+
+
+# React组件进阶
+
+### 1 组件通讯介绍
+
+​	· 组件是独立且封闭的单元，默认情况下，只能使用组件自己的数据。在组件化过程中，我们将一个完整的功能拆分成多个组件，以更好的完成整个应用的功能。而在这个过程中，多个组件之间不可避免的要共享某些数据。
+
+​	· 为了实现这些功能，就需要打破组件的独立封闭性，让其与外界沟通。这个过程就是**组件通讯**
+
+### 2 组件的props
+
+#### 2.1 基本使用
+
+​	· 组件是封闭的，要接收外部数据应该通过props来实现
+
+​	· props的作用：接收传递给组件的数据
+
+​	· 传递数据：给组件标签添加属性
+
+​	· 接收数据：函数组件通过参数props接收数据，类组件通过this.props接收数据
+
+```react
+/*
+* props
+*/
+
+//函数组件
+
+// //接收数据
+// const Hello = props => {
+//   //props是一个对象
+//     return(
+//       <div>
+//         <h1>props:{props.name}</h1>
+//       </div>
+//     )
+// }
+
+
+//类组件
+class App extends React.Component{
+  render(){
+    return (
+      <div>
+        <h1>props:{this.props.name}</h1>
+      </div>
+    )
+  }
+}
+
+//1 传递数据
+ReactDOM.render(<App name='mark' />,document.getElementById('root'))
+```
+
+#### 2.2 props特点
+
+​	·  可以给组件传递任何类型的数据
+
+​	·  props是只读的对象，只能读取属性的值，无法修改对象
+
+​	·  ==注意：使用类组件时，如果写了构造函数，应该将props传递给super()，否则，无法在构造函数中获取到props==
+
+```react
+class App extends React.Component{
+  constructor(props){
+    //推荐将props传递给父类构造函数
+    super(props)
+  }
+  render(){
+    return (
+      <div>
+        <h1>props:{this.props.name}</h1>
+      </div>
+    )
+  }
+}
+
+```
+
+### 3 组件通讯的三种方式
+
+#### 3.1 父组件传递数据给子组件
+
+​	1 父组件提供要传递的state数据
+
+​	2 给子组件标签添加属性，值为state中的数据
+
+​	3 子组件中通过props接收父组件中传递的数据
+
+```react
+/*
+* 父组件传递数据给子组件
+*/
+
+//父组件
+class Parent extends React.Component{
+  state = {
+    lastName:'mark'
+  }
+  render(){
+    return (
+      <div>
+        parent:
+        <Child name = {this.state.lastName}/>
+        <Child2 name = {this.state.lastName} />
+      </div>
+    )
+  }
+}
+
+//子组件
+class Child extends React.Component{
+  render(){
+    return (
+      <div>
+        child:
+        {this.props.name}
+      </div>
+    )
+  }
+}
+
+//子组件2
+const Child2 = props => {
+  return(
+    <div>
+      child:
+      {props.name}
+    </div>
+  )
+}
+```
+
+#### 3.2 子组件传递数据给父组件
+
+​	· 思路：利用回调函数，父组件提供回调，子组件调用，将要传递的数据作为回调函数的参数
+
+​	1 父组件提供一个回调函数(用于接收数据)
+
+​	2 将该函数作为属性的值，传递给子组件
+
+​	3 子组件通过props调用回调函数
+
+​	4 将子组件的数据作为参数传递给回调函数
+
+​	==注意：回调函数中this指向问题==
+
+```react
+/*
+* 子组件传递参数给父组件
+*/
+ 
+//父组件
+class Parent extends React.Component{
+  state = {
+    data:''
+  }
+  //父组件接收数据
+  getMsg = data => {
+    this.setState({
+      data:data
+    })
+  }
+  render(){
+    return(
+      <div>
+        父组件：{this.state.data}
+        <Child getMSG = {this.getMsg}/>
+      </div>
+    )
+  }
+}
+
+//子组件
+class Child extends React.Component{
+  state = {
+    data:'1111'
+  }
+  handle = () => {
+    this.props.getMSG(this.state.data)
+  }
+  render(){
+    return (
+      <div>
+        子组件 <button onClick={this.handle}>点我，给父组件传递数据</button>
+      </div>
+    )
+  }
+}
+```
+
+#### 3.3 兄弟组件之间传值
+
+​	· 将共享状态提升到最近的公共父组件中，由公共父组件管理这个状态
+
+​	· 思想：状态提升
+
+​	· 公共父组件职责：1 提供共享状态  2 提供操作共享状态的方法
+
+​	· 要通讯的子组件只需通过props接收状态或操作状态的方法即可
+
+```react
+//兄弟组件之间传值
+//公共父组件
+class Parent extends React.Component{
+  state = {
+    pdata:''
+  }
+  getmsg = data => {
+    this.setState({
+      pdata:data
+    })
+  }
+  render(){
+    return(
+      <div>
+        <Child2 getMsg = {this.getmsg}/>
+        <Child1 name = {this.state.pdata}/>
+      </div>
+    )
+  }
+}
+
+//子组件1
+class Child1 extends React.Component{
+  render(){
+    return(
+      <div>
+        {this.props.name}
+      </div>
+    )
+  }
+}
+
+
+//子组件2
+class Child2 extends React.Component{
+  state = {
+    child2data:'2'
+  }
+  handle = () => {
+    this.props.getMsg(this.state.child2data)
+  }
+  render(){
+    return(
+      <div>
+        <button onClick={this.handle}>将数据传递到父组件</button>
+      </div>
+    )
+  }
+}
+```
+
+###  4 Context
+
+​	作用：跨组件传递数据(比如：主题、语言等)
+
+​	**使用步骤：**
+
+​	1 调用React.createContext()创建Provider(提供数据)和Consumer(消费数据)两个组件。
+
+```react
+const {Provider,Consumer} = React.createContext()
+```
+
+​	2 使用Provider组件作为父节点
+
+```html
+ <Provider>
+   <div>
+   	<Node />
+   </div>
+ </Provider>
+```
+
+​	3 设置value属性，表示要传递的数据
+
+```react
+<Provider value="pink">
+```
+
+​	4 调用Consumer组件接收数据
+
+```react
+<Consumer>
+  {
+  	data => <span>我是子节点 -- {data}</span>
+  }
+</Consumer>
+```
+
+==全部程序==
+
+```react
+/*
+* context的基本使用
+*/
+
+//创建context得到两个组件
+const {Provider,Consumer} = React.createContext()
+
+class App extends React.Component{
+  render(){
+    return(
+      <Provider value="pink">
+        <div>
+          <Node />
+        </div>
+      </Provider>
+    )
+  }
+}
+
+const Node = props => {
+  return (
+    <div>
+      <SubNode />
+    </div>
+  )
+}
+
+const SubNode = props => {
+  return (
+    <div>
+      <Child />
+    </div>
+  )
+}
+
+const Child = props => {
+  return <div>
+    <Consumer>
+      {
+        data => <span>我是子节点 -- {data}</span>
+      }
+    </Consumer>
+  </div>
+}
+```
+
+### 5 props深入
+
+#### 5.1 children属性
+
+​	· children属性:表示组件标签的子节点。当组件标签有子节点时，props就会有该属性
+
+```react
+const App = props =>{
+  console.log(props)
+  return(
+    <div>
+      <h1>组件标签的子节点</h1>
+      {props.children}
+    </div>
+  )
+}
+
+ReactDOM.render(<App>我是子节点</App>,document.getElementById('root'))
+```
+
+​	· children属性与普通的props一样，值可以是任意值(文本、React元素、组件，甚至是函数)
+
+```react
+/*
+* children属性
+*/
+
+
+const App = props =>{
+  console.log(props)
+  props.children()
+  return(
+    <div>
+      <h1>组件标签的子节点</h1>
+      {/* {props.children} */}
+    </div>
+  )
+}
+
+ReactDOM.render(
+  <App>
+    {() => console.log('这是一个函数子节点')}
+  </App>,
+  document.getElementById('root')
+)
+
+//children为jsx或组件
+//const Test = () => <button>我是button组件</button>
+// const App = props =>{
+//   console.log(props)
+//   return(
+//     <div>
+//       <h1>组件标签的子节点</h1>
+//       {props.children}
+//     </div>
+//   )
+// }
+
+// ReactDOM.render(
+//   <App>
+//     <p>我是子节点，是一个p标签</p>
+//     <Test/>
+//   </App>,
+//   document.getElementById('root')
+// )
+
+
+
+//children为文本节点
+// const App = props =>{
+//   console.log(props)
+//   return(
+//     <div>
+//       <h1>组件标签的子节点</h1>
+//       {props.children}
+//     </div>
+//   )
+// }
+
+// ReactDOM.render(<App>我是子节点</App>,document.getElementById('root'))
+```
+
+#### 5.2 props校验
+
+​	· 对于组件来说，props是外来的，无法保证组件使用者传入什么格式的数据
+
+​	· 如果传入的数据格式不对，可能会导致组件内部报错
+
+​	==· 关键问题：组件使用这不知道明确的错误原因==
+
+​	· props校验：允许在创建组件的时候，就指定props的类型、格式等
+
+​	· 作用：捕获使用组件时因props导致的错误，给出明确的错误提示，增加组件的健壮性
+
+​	**使用步骤**
+
+​	1 安装包`prop-types(yarn add prop-types/npm i prop-types)`
+
+​	2 导入prop-types包
+
+​	3 使用组件名.propTypes = {}来给组件的props添加校验规则
+
+​	4 校验规则通过PropTypes对象来指定
+
+```react
+/*
+* props校验
+*/
+
+
+import PropTypes from 'prop-types'
+
+const App = props =>{
+  const arr = props.colors
+  const lis = arr.map((item,index) => <li key={index}>{item.index}</li>)
+  return <ul>{lis}</ul>
+}
+
+//添加props校验
+App.propTypes = {
+  //约定colors属性为array
+  //如果类型不对，则报出明确错误，便于分析错误原因
+  colors:PropTypes.array
+}
+
+ReactDOM.render(<App colors={19}></App>,document.getElementById('root'))
+```
+
+**约束规则**
+
+​	1 常见类型：array、bool、func、number、object、string
+
+​	2 React元素类型:element
+
+​	3 必填项:isRequired
+
+​	4 特定结构的对象:shape({})
+
+```react
+//常见类型
+optionalFunc:PropTypes.func
+//必选
+requiredFunc:PropTypes.func.isRequired
+//特定结构的对象
+optionalObjectWithShape:PropTypes.shape({
+	color:PropTypes.string,
+	fontSize:PropTypes.number
+})
+```
+
+**示例**
+
+```react
+/*
+* props常用规则校验
+*/
+
+import PropTypes from 'prop-types'
+
+const App = props => {
+  return(
+    <div>
+      <h1>props校验：</h1>
+    </div>
+  )
+}
+
+//添加props校验
+//属性a的类型：                       数值(number)
+//属性fn的类型：                      函数(func)并且为必填项
+//属性tag的类型：                     React元素(element)
+//属性filter的类型：                  对象({area:'上海'，price：1999})
+App.PropTypes = {
+  a:PropTypes.number,
+  fn:PropTypes.func.isRequired,
+  tag:PropTypes.element,
+  filter:PropTypes.shape({
+    area:PropTypes.string,
+    price:PropTypes.number
+  })
+}
+
+
+ReactDOM.render(<App/>,document.getElementById('root'))
+```
+
+#### 5.3 props的默认值
+
+​	· 场景：分页组件 ➡️ 每页显示条数
+
+​	· 作用：给props设置默认值，在未传入props时生效
+
+```react
+/*
+* props默认值
+*/
+
+const App = props =>{
+  console.log(props)
+  return(
+    <div>
+      <h1>此处展示props的默认值:{props.pageSize}</h1>
+    </div>
+  )
+}
+
+//添加props默认值
+App.defaultProps = {
+  pageSize:10
+}
+
+ReactDOM.render(<App/>,document.getElementById('root'))
+```
+
