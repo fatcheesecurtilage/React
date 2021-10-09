@@ -1647,3 +1647,195 @@ App.defaultProps = {
 ReactDOM.render(<App/>,document.getElementById('root'))
 ```
 
+### 6 组件的生命周期
+
+#### 6.1 组件的生命周期概述
+
+​	· 意义：组件的生命周期有助于理解组件的运行方式、完成更复杂的组件功能、分析组件错误原因等
+
+​	· 组件的生命周期：组件从被创建到挂载到页面中运行，再到组件不用时卸载的过程
+
+​	· 生命周期的每个阶段总是伴随着一些方法调用，这些方法就是生命周期的钩子函数
+
+​	· 钩子函数的作用：为开发人员在不同阶段操作组件提供了时机
+
+​	==· 只有类组件才有生命周期==
+
+#### 6.2 生命周期的三个阶段
+
+![image-20211009223129897](/Users/mark/Library/Application Support/typora-user-images/image-20211009223129897.png)
+
+​	**1 创建时(挂载阶段)**
+
+​	· 执行时机：组件创建时(页面加载时)
+
+​	· 执行顺序
+
+​		constructor()  --->   render()   ------->    componentDidMount
+
+​	
+
+| 钩子函数          | 触发时机                | 作用                                        |
+| ----------------- | ----------------------- | ------------------------------------------- |
+| constructor       | 创建组件时，最先执行    | 1 初始化state<br />2 为事件处理程序绑定this |
+| render            | 每次组件渲染都会触发    | 渲染UI(注意：==不能调用setState==)          |
+| componentDidMount | 组件挂载(完成Dom渲染)后 | 1 发送网络请求<br/>2 DOM操作                |
+
+​	**2 更新时(更新阶段)**
+
+​	· 执行时机：1 setState()    2 forceUpdate()  3 组件接收到新的props
+
+​	· 说明：以上三者任意一种变化，组件就会重新渲染
+
+```react
+/*
+* 组件生命周期--更新时
+*/
+class App extends React.Component{
+  constructor(props){
+    super(props)
+
+    //初始化state
+    this.state = {
+      count:1
+    }
+  }
+
+  //打豆豆
+  handleClick = () => {
+    this.setState({
+      count:this.state.count+1
+    })
+
+
+    //强制更新
+    this.forceUpdate()
+  }
+
+  render(){
+    console.log('生命周期钩子函数：render')
+    return(
+      <div>
+        <Counter count = {this.state.count} />
+        <button onClick={this.handleClick} >打豆豆</button>
+      </div>
+    )
+  }
+}
+
+class Counter extends React.Component{
+  render(){
+    console.log('--子组件--生命周期钩子函数：render')
+    return <h1>统计豆豆被打的次数:{this.props.count}</h1>
+  }
+}
+```
+
+​	· 执行顺序
+
+​		render()  ---->  componentDidUpdate()
+
+| 钩子函数           | 触发时机                | 作用                                                         |
+| ------------------ | ----------------------- | ------------------------------------------------------------ |
+| render             | 每次组件渲染都会触发    | 渲染UI(与挂载阶段是同一个render)                             |
+| componentDidUpdate | 组件更新(完成DOM渲染)后 | 1 发送网络请求<br/>2 DOM操作<br/>注意：如果要setState()必须放在一个if条件中 |
+
+```react
+class Counter extends React.Component{
+  render(){
+    console.log('--子组件--生命周期钩子函数：render')
+    return <h1>统计豆豆被打的次数:{this.props.count}</h1>
+  }
+
+  //注意：如果要调用setState()更新状态，必须放在一个if条件中
+  //因为：如果直接调用setState()更新状态，也会导致递归更新！！！
+
+  componentDidUpdate(preProps){
+    //正确做法：
+    //做法：比较更新前后的props是否相同，来决定是否重新渲染组件
+    console.log('上一次的props：',preProps,'当前的props',this.props)
+    if(preProps.count !== this.props.count){
+      this.setState({})
+    }
+
+    //错误演示！！！
+    //this.setState({})
+
+    //获取Dom
+    const title = document.getElementById('title')
+    console.log(title.innerHTML)
+  }
+}
+```
+
+​	**3 卸载时(卸载阶段)**
+
+​	· 执行时机：组件从页面中消失
+
+| 钩子函数             | 触发时机               | 作用                             |
+| -------------------- | ---------------------- | -------------------------------- |
+| componentWillUnmount | 组件卸载(从页面中消失) | 执行清理工作(比如：清理定时器等) |
+
+```react
+/*
+* 组件卸载时
+*/
+class App extends React.Component{
+  constructor(props){
+    super(props)
+
+    //初始化state
+    this.state = {
+      count:1
+    }
+  }
+
+  //打豆豆
+  handleClick = () => {
+    this.setState({
+      count:this.state.count+1
+    })
+  }
+
+  render(){
+    console.log('生命周期钩子函数：render')
+    return(
+      <div>
+        {
+          this.state.count>3
+            ? <p>豆豆被打死了</p>
+            : <Counter count = {this.state.count} />
+        }
+        
+        <button onClick={this.handleClick} >打豆豆</button>
+      </div>
+    )
+  }
+}
+
+class Counter extends React.Component{
+  componentDidMount(){
+    //开启定时器
+    this.timer = setInterval(() => {
+      console.log('定时器执行')
+    }, 500);
+  }
+  render(){
+    return(
+      <p>豆豆被打的次数：{this.props.count}</p>
+    )
+  }
+  componentWillUnmount(){
+    console.log('生命周期执行函数 componentWillUnmount')
+    //清理定时器
+    clearInterval(this.timer)
+  }
+}
+```
+
+#### 6.3 不常用的生命周期
+
+![截屏2021-10-09 下午11.17.54](/Users/mark/Desktop/截屏2021-10-09 下午11.17.54.png)
+
+![image-20211009232137302](/Users/mark/Library/Application Support/typora-user-images/image-20211009232137302.png)
+
