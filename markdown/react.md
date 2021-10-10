@@ -1839,3 +1839,334 @@ class Counter extends React.Component{
 
 ![image-20211009232137302](/Users/mark/Library/Application Support/typora-user-images/image-20211009232137302.png)
 
+### 7 render-props和高阶组件
+
+#### 7.1 React组件复用概述
+
+​	· 思考：如果两个组件中的部分功能相似或相同，该如何处理？
+
+​	· 处理方式：复用相似的功能(联想函数封装)
+
+​	· 复用什么？1 state    2 操作state的方法(组件状态逻辑)
+
+​	· 两种方式复用：1 render props模式         2 高阶组件(HOC)
+
+​	· 注意：这两种方法不是新的API，而是利用React自身特点的编码技巧，演化而成的固定模式(写法)
+
+#### 7.2 render props模式
+
+**思路分析**
+
+· 思路：将要复用的state和操作state的方法封装到一个组件中
+
+· 问题1:如何拿到该组件中复用的state？
+
+· 在使用组件时，添加一个值为==函数的prop==，通过函数参数来获取(需要组件内部实现)
+
+· 问题2:如何渲染任意UI
+
+· 使用该==函数的返回值==作为要渲染的UI内容(需要组件内部实现)
+
+**使用步骤**
+
+1 创建Mouse组件，在组件中提供复用的状态逻辑代码(1 状态    2 操作状态的方法)
+
+2 将要复用的状态作为props.render(state)方法的参数，暴露到组件外部
+
+3 使用props.render()返回值作为要渲染的内容
+
+```react
+/*
+* render props模式
+*/
+
+//创建Mouse组件
+class Mouse extends React.Component{
+  //鼠标位置state
+  state = {
+    x:0,
+    y:0
+  }
+  //鼠标移动事件的事件处理程序
+  handleMouseMove = e => {
+    this.setState({
+      x:e.clientX,
+      y:e.clientY
+    })
+  }
+
+  //监听鼠标移动事件
+  componentDidMount(){
+    window.addEventListener('mousemove',this.handleMouseMove)
+  }
+
+  render(){
+    // return (
+    //   <div>
+    //     {this.state.x},{this.state.y}
+    //   </div>
+    // )
+
+    return this.props.render(this.state)
+  }
+}
+
+class App extends React.Component{
+  render(){
+    return(
+      <div>
+        <h1>render props模式</h1>
+        <Mouse render = {mouse =>{
+          return(
+            <p>
+              鼠标位置：{mouse.x} {mouse.y}
+            </p>
+          )
+        }} />
+      </div>
+    )
+  }
+}
+```
+
+**演示Mouse组件的复用**
+
+· Mouse组件负责：==封装复用的状态逻辑代码==(1 状态   2 操作状态的方法)
+
+· 状态：鼠标坐标(x，y)
+
+· 操作状态的方法：鼠标移动事件
+
+· 传入的render prop负责:使用复用的状态来渲染UI结构
+
+```react
+class App extends React.Component{
+  render(){
+    return(
+      <div>
+        <h1>render props模式</h1>
+        <Mouse render = {mouse =>{
+          // return(
+          //   <p>
+          //     鼠标位置：{mouse.x} {mouse.y}
+          //   </p>
+          // )
+          {/* 猫捉老鼠 */}
+          return(
+            <img src={img} alt='cat'  style={{
+              position:'absolute',
+              top:mouse.y,
+              left:mouse.x,
+              width:'20px'
+            }}/>
+          )
+        }} />
+      </div>
+      
+    )
+  }
+}
+```
+
+**children代替render属性**
+
+· 注意：并不是该模式叫render props就必须使用名为render的prop，实际上可以使用任意名称的props
+
+· 把prop是一个函数并且告诉组件要渲染什么内容的技术叫做：render props模式
+
+· 推荐：使用children代替render属性
+
+```react
+/*
+* 用children代替render
+*/
+class App extends React.Component{
+  render(){
+    return(
+      <div>
+        <Mouse>
+          {
+            mouse => {
+              return(
+                <p>
+                  鼠标位置：{mouse.x} {mouse.y}
+                </p>
+              )  
+            }
+          }
+        </Mouse>
+        <Mouse>
+          {
+            mouse =>{
+              return(
+                <img src={img} alt='cat'  style={{
+                  position:'absolute',
+                  top:mouse.y,
+                  left:mouse.x,
+                  width:'20px'
+                }}/>
+              )
+            }
+          }
+        </Mouse>
+      </div>
+    )
+  }
+}
+```
+
+**代码优化**
+
+1 推荐：给render props模式添加props校验
+
+```react
+//添加props校验
+Mouse.propTypes = {
+  children:PropTypes.func.isRequired
+}
+```
+
+==注意：Mouse.propTypes中的p是小写，而下面的是大写==
+
+2 应该在组件卸载时解除mousemove事件绑定
+
+```react
+//页面卸载时解除mousemove绑定
+componentWillUnmount(){
+	window.removeEventListener('mousemove',this.handleMouseMove)
+}
+```
+
+### 7.3 高阶组件
+
+**概述**
+
+· 目的：实现状态逻辑复用
+
+· 采用包装(装饰)模式，比如手机壳
+
+· 手机：获取保护功能
+
+· 手机壳：提供保护功能
+
+· 高阶组件就相当于手机壳，通过包装组件，增强组件功能
+
+**思路分析**
+
+· 高阶组件(HOC,Higher-Order Component)是一个函数，接收要包装的组件，返回增强后的组件
+
+· 高阶组件内部创建一个类组件，在这个类组件中提供复用的状态逻辑代码，通过prop将复用的状态传递给被包装组件WrappedComponent
+
+**使用步骤**
+
+1 创建一个函数，名称约定以==with==开头
+
+2 指定函数参数，参数应该以大写字母开头(作为要渲染的组件)
+
+3 在函数内部创建一个类组件，==提供复用的状态逻辑代码==，并返回
+
+4 在该组件中，渲染参数组件，同时将状态通过prop传递给参数组件
+
+5 调用该高阶组件，传入要增强的组件，通过返回值拿到增强后的组件，并将其渲染到页面中
+
+```react
+/*
+* 高阶组件
+*/
+//创建高阶组件
+function withMouse(WrappedComponent){
+  //该组件提供复用的状态逻辑
+  class Mouse extends React.Component{
+    //鼠标状态
+    state = {
+      x:0,
+      y:0
+    }
+
+    //控制鼠标状态的逻辑
+    componentDidMount(){
+      window.addEventListener('mousemove',this.mousemove)
+    }
+
+    componentWillUnmount(){
+      window.removeEventListener('mousemove',this.mousemove)
+    }
+
+    //获取鼠标状态，并赋值给state
+    mousemove = e => {
+      this.setState({
+        x:e.clientX,
+        y:e.clientY
+      })
+    }
+
+    //渲染组件
+    render(){
+      return(
+        <WrappedComponent {...this.state}></WrappedComponent>
+      )
+    }
+  }
+  return Mouse
+}
+
+
+
+//用来测试高阶组件
+const Position = props => (
+  <p>
+    鼠标当前位置：(x:{props.x},y:{props.y})
+  </p>
+)
+
+//获取增强后的组件
+const MousePosition =  withMouse(Position)
+
+class App extends React.Component{
+  render(){
+    return(
+      <div>
+        <h1>高阶组件</h1>
+        {/* 渲染增强后的组件 */}
+        <MousePosition/>
+      </div>
+    )
+  }
+}
+```
+
+**设置displayName**
+
+· 使用高阶组件存在的问题：得到的两个组件名称相同
+
+· 原因：默认情况下，React使用组件名称作为displayName
+
+· 解决方式：为高阶组件设置displayName便于调试时区分不同的组件
+
+· displayName的作用：用于设置调试信息(React Developer Tools信息)
+
+· 设置方式
+
+```react
+  Mouse.displayName = `WithMouse${getDisplayName(WrappedComponent)}`
+
+//获取dispalyname
+function getDisplayName(WrappedComponent){
+  return WrappedComponent.displayName || WrappedComponent.name || 'Component'
+}
+```
+
+**传递props**
+
+· 问题：props丢失
+
+· 原因：高阶组件没有往下传递props
+
+· 解决方法：渲染WrappedComponent时，将state和this.props一起传递给组件
+
+· 传递方式：
+
+```react
+<WrappedComponent {...this.state} {...this.props}></WrappedComponent>
+```
+

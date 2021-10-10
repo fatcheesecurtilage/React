@@ -1,6 +1,6 @@
 import React from 'react'
 import  ReactDOM, { render }  from 'react-dom'
-
+// import PropTypes from 'prop-types'
 /*
 * props
 */
@@ -472,55 +472,249 @@ import  ReactDOM, { render }  from 'react-dom'
 /*
 * 组件卸载时
 */
-class App extends React.Component{
-  constructor(props){
-    super(props)
+// class App extends React.Component{
+//   constructor(props){
+//     super(props)
 
-    //初始化state
-    this.state = {
-      count:1
+//     //初始化state
+//     this.state = {
+//       count:1
+//     }
+//   }
+
+//   //打豆豆
+//   handleClick = () => {
+//     this.setState({
+//       count:this.state.count+1
+//     })
+//   }
+
+//   render(){
+//     console.log('生命周期钩子函数：render')
+//     return(
+//       <div>
+//         {
+//           this.state.count>3
+//             ? <p>豆豆被打死了</p>
+//             : <Counter count = {this.state.count} />
+//         }
+        
+//         <button onClick={this.handleClick} >打豆豆</button>
+//       </div>
+//     )
+//   }
+// }
+
+// class Counter extends React.Component{
+//   componentDidMount(){
+//     //开启定时器
+//     this.timer = setInterval(() => {
+//       console.log('定时器执行')
+//     }, 500);
+//   }
+//   render(){
+//     return(
+//       <p>豆豆被打的次数：{this.props.count}</p>
+//     )
+//   }
+//   componentWillUnmount(){
+//     console.log('生命周期执行函数 componentWillUnmount')
+//     //清理定时器
+//     clearInterval(this.timer)
+//   }
+// }
+
+
+
+
+
+
+/*
+* render props模式
+*/
+
+///引入图片
+// import img from './img/cat.png'
+
+// //创建Mouse组件
+// class Mouse extends React.Component{
+//   //鼠标位置state
+//   state = {
+//     x:0,
+//     y:0
+//   }
+//   //鼠标移动事件的事件处理程序
+//   handleMouseMove = e => {
+//     this.setState({
+//       x:e.clientX,
+//       y:e.clientY
+//     })
+//   }
+
+//   //监听鼠标移动事件
+//   componentDidMount(){
+//     window.addEventListener('mousemove',this.handleMouseMove)
+//   }
+
+//   //页面卸载时解除mousemove绑定
+//   componentWillUnmount(){
+//     window.removeEventListener('mousemove',this.handleMouseMove)
+//   }
+
+//   render(){
+//     // return (
+//     //   <div>
+//     //     {this.state.x},{this.state.y}
+//     //   </div>
+//     // )
+
+//     return this.props.children(this.state)
+//   }
+// }/ 
+
+// class App extends React.Component{
+//   render(){
+//     return(
+//       <div>
+//         <h1>render props模式</h1>
+       
+//         <Mouse render = {mouse =>{
+//           // return(
+//           //   <p>
+//           //     鼠标位置：{mouse.x} {mouse.y}
+//           //   </p>
+//           // )
+//           {/* 猫捉老鼠 */}
+//           // return(
+//           //   <img src={img} alt='cat'  style={{
+//           //     position:'absolute',
+//           //     top:mouse.y,
+//           //     left:mouse.x,
+//           //     width:'20px'
+//           //   }}/>
+//           // )
+//         }} />
+     
+//       </div>
+      
+//     )
+//   }
+// }  
+
+
+// //添加props校验
+// Mouse.propTypes = {
+//   children:PropTypes.func.isRequired
+// }
+
+// /*
+// * 用children代替render
+// */
+// class App extends React.Component{
+//   render(){
+//     return(
+//       <div>
+//         <Mouse>
+//           {
+//             mouse => {
+//               return(
+//                 <p>
+//                   鼠标位置：{mouse.x} {mouse.y}
+//                 </p>
+//               )  
+//             }
+//           }
+//         </Mouse>
+//         <Mouse>
+//           {
+//             mouse =>{
+//               return(
+//                 <img src={img} alt='cat'  style={{
+//                   position:'absolute',
+//                   top:mouse.y,
+//                   left:mouse.x,
+//                   width:'20px'
+//                 }}/>
+//               )
+//             }
+//           }
+//         </Mouse>
+//       </div>
+//     )
+//   }
+// }
+
+
+/*
+* 高阶组件
+*/
+//创建高阶组件
+function withMouse(WrappedComponent){
+  //该组件提供复用的状态逻辑
+  class Mouse extends React.Component{
+    //鼠标状态
+    state = {
+      x:0,
+      y:0
+    }
+
+    //控制鼠标状态的逻辑
+    componentDidMount(){
+      window.addEventListener('mousemove',this.mousemove)
+    }
+
+    componentWillUnmount(){
+      window.removeEventListener('mousemove',this.mousemove)
+    }
+
+    //获取鼠标状态，并赋值给state
+    mousemove = e => {
+      this.setState({
+        x:e.clientX,
+        y:e.clientY
+      })
+    }
+
+    //渲染组件
+    render(){
+      return(
+        <WrappedComponent {...this.state} {...this.props}></WrappedComponent>
+      )
     }
   }
 
-  //打豆豆
-  handleClick = () => {
-    this.setState({
-      count:this.state.count+1
-    })
-  }
+  //设置displayname
+  Mouse.displayName = `WithMouse${getDisplayName(WrappedComponent)}`
 
+  return Mouse
+}
+
+//获取dispalyname
+function getDisplayName(WrappedComponent){
+  return WrappedComponent.displayName || WrappedComponent.name || 'Component'
+}
+
+
+//用来测试高阶组件
+const Position = props => (
+  <p>
+    鼠标当前位置：(x:{props.x},y:{props.y})
+  </p>
+)
+
+//获取增强后的组件
+const MousePosition =  withMouse(Position)
+
+class App extends React.Component{
   render(){
-    console.log('生命周期钩子函数：render')
     return(
       <div>
-        {
-          this.state.count>3
-            ? <p>豆豆被打死了</p>
-            : <Counter count = {this.state.count} />
-        }
-        
-        <button onClick={this.handleClick} >打豆豆</button>
+        <h1>高阶组件</h1>
+        {/* 渲染增强后的组件 */}
+        <MousePosition/>
       </div>
     )
   }
 }
 
-class Counter extends React.Component{
-  componentDidMount(){
-    //开启定时器
-    this.timer = setInterval(() => {
-      console.log('定时器执行')
-    }, 500);
-  }
-  render(){
-    return(
-      <p>豆豆被打的次数：{this.props.count}</p>
-    )
-  }
-  componentWillUnmount(){
-    console.log('生命周期执行函数 componentWillUnmount')
-    //清理定时器
-    clearInterval(this.timer)
-  }
-}
 ReactDOM.render(<App/>,document.getElementById('root'))
