@@ -2170,3 +2170,95 @@ function getDisplayName(WrappedComponent){
 <WrappedComponent {...this.state} {...this.props}></WrappedComponent>
 ```
 
+
+
+# React 原理揭秘
+
+### 1 setState()的说明
+
+#### 1.1 更新数据
+
+​	==· setState()是异步更新数据的==
+
+​	· 注意：使用该语法时，后面的setState()不要依赖于前面的setState()
+
+​	· 可以多次调用setState()，但只会触发一次重新渲染
+
+#### 1.2 推荐语法
+
+​	· 推荐：使用setState(((state,props) => {}))语法
+
+​	· 参数state：表示最新的state
+
+​	· 参数props：表示最新的props
+
+```react
+class App extends React.Component{
+  state = {
+    count:1
+  }
+
+
+  handleClick = () => {
+    // this.setState({
+    //   count:this.state.count +1
+    // })
+
+    //推荐语法
+    //注意：这种语法也是异步更新state的！
+    this.setState((state,props) => {
+      return {
+        count:state.count + 1
+      }
+    })
+  }
+  
+  render(){
+    return (
+      <div>
+        <h1>计数器：{this.state.count}</h1>
+        <button onClick={this.handleClick}>+1</button>
+      </div>
+    )
+  }
+}
+```
+
+#### 1.3 第二个参数
+
+​	· 场景：在状态更新(页面完成重新渲染)后立即执行某个操作
+
+​	· 语法：setState(updater[,callback])
+
+```react
+handleClick = () => {
+    this.setState((state,props) => {
+      return {
+        count:state.count + 1
+      }
+    },
+    //状态更新后并且重新渲染后，立即执行
+    () => {
+      console.log('状态更新完成：',this.state.count)
+    }
+    )
+  }
+```
+
+### 2  JSX语法的转化过程
+
+​	· JSX仅仅是createElement()方法的语法糖(简化语法)
+
+​	· JSX语法被@babel/preset-react插件编译为createElement()方法
+
+​	· React元素：是一个对象，用来描述你希望在屏幕上看到的内容
+
+![image-20211011211352632](/Users/mark/Library/Application Support/typora-user-images/image-20211011211352632.png)
+
+### 3 组件更新机制
+
+​	· setState()的两个作用：1 修改state     2 更新组件(UI)
+
+​	· 过程：父组件重新渲染时，也会重新渲染子组件。但只会渲染当前组件子树(当前组件及其所有子组件)
+
+![image-20211011213136440](/Users/mark/Library/Application Support/typora-user-images/image-20211011213136440.png)
