@@ -2262,3 +2262,211 @@ handleClick = () => {
 ​	· 过程：父组件重新渲染时，也会重新渲染子组件。但只会渲染当前组件子树(当前组件及其所有子组件)
 
 ![image-20211011213136440](/Users/mark/Library/Application Support/typora-user-images/image-20211011213136440.png)
+
+### 4 组件性能优化
+
+#### 4.1 减轻state
+
+​	· 减轻state：只存储跟组件渲染相关的数据(如：count/列表数据/loading等)
+
+​	· 注意：不用做渲染的数据不要放在state中，比如定时器id等
+
+​	· 对于这种需要在多个方法中用到的数据，应该放在this中
+
+```react
+class Hello extends React.Component{
+  componentDidMount(){
+    //timerId存储到this中，而不是state中
+    this.timerId = setInterval(() => {},2000)
+  }
+  componentWillUnmount(){
+    clearInterval(this.timerId)
+  }
+  render(){
+    ...
+  }
+}
+```
+
+#### 4.2 避免不必要的重新渲染
+
+​	· 组件更新机制：父组件更新会引起子组件也被更新
+
+​	· 问题：子组件没有发生任何变化时也会重新渲染
+
+​	· 如何避免不必要的重新渲染？
+
+​	· 解决方式：使用钩子函数==shouldComponentUpdate(nextProps,nextState)==
+
+​	· 作用：通过返回值决定该组件是否重新渲染，返回true表示重新渲染，false表示不重新渲染
+
+​	· 触发时机：更新阶段的钩子函数，组件重新渲染前执行(shouldComponentUpdate -> render)
+
+```react
+/*
+* 避免不必要的更新
+*/
+//根组件
+class App extends React.Component{
+  state = {
+    count:0
+  }
+
+  //钩子函数
+  shouldComponentUpdate(nextProps,nextState){
+    // //返回false，阻止组件重新渲染
+    // return false
+    
+    //最新的状态
+    console.log('最新的state：',nextState)
+    //更新前的状态
+    console.log('this.state:',this.state)
+    
+    return true
+  }
+
+  handleClick = () => {
+    this.setState(state => {
+      return {
+        count:state.count +1
+      }
+    })
+  }
+
+  render(){
+    console.log('组件更新了')
+    return (
+      <div>
+        <h1>计数器：{this.state.count}</h1>
+        <button onClick={this.handleClick}>+1</button>
+      </div>
+    )
+  }
+}
+```
+
+**随机数案例**
+
+**nextState**
+
+```react
+//生成随机数
+class App extends React.Component{
+  state = {
+    number:10
+  }
+
+  //重新生成函数
+  handleClick = () => {
+    this.setState({
+      number:Math.ceil(Math.random()*2)
+    })
+  }
+
+  //是否重新渲染
+  shouldComponentUpdate(nextProps,nextState){
+    if(this.state === nextState){
+      return false
+    }else{
+      return true
+    }
+  }
+
+  render(){
+    return(
+      <div>
+        <h1>生成的随机数是:{this.state.number}</h1>
+        <button onClick={this.handleClick}>重新生成</button>
+      </div>
+    )
+  }
+}
+```
+
+**nextProps**
+
+```react
+//nextprops
+class App extends React.Component{
+  state = {
+    number:10
+  }
+
+  //重新生成函数
+  handleClick = () => {
+    this.setState({
+      number:Math.ceil(Math.random()*2)
+    })
+  }
+
+  render(){
+    return(
+      <div>
+        <NumberBox number={this.state.number}></NumberBox>
+        <button onClick={this.handleClick}>重新生成</button>
+      </div>
+    )
+  }
+}
+
+class NumberBox extends React.Component{
+    //是否重新渲染
+    shouldComponentUpdate(nextProps,nextState){
+      console.log('props',this.props,'nextprops',nextProps)
+      if(this.props.number === nextProps.number){
+        return false
+      }
+      return true
+    }
+
+  render(){
+    console.log('render')
+    return (
+      <h1>随机数：{this.props.number}</h1>
+    )
+  }
+}
+```
+
+#### 4.3 纯组件
+
+​	· 说明：纯组件内部的对比是shallow compare(浅层对比)
+
+​	· 对于值类型来说：比较两个值是否相同(直接赋值即可，没有坑)
+
+```
+let number = 0
+let newNumber = number
+newNumber = 2
+console.log(number === newNumber)//false
+```
+
+```
+state = {number:0}
+setState({
+	number:Math.floor(Math.random()*3)
+})
+//PureComponent内部对比
+最新的state.number === 上一次的state.number //false，重新渲染组件
+```
+
+​	· 对于引用类型来说：只比较对象的引用(地址)是否相同
+
+​	==· 注意：state或props中属性值为引用类型时，应该创建新数据，不要直接修改原始数据
+
+```
+const obj = {number:0}
+const newObj = obj
+newObj.number = 2
+console.log(newObj === obj) //true
+```
+
+```
+state = {obj:{number:0}}
+//错误做法
+state.obj.number = 2
+setState({obj:state.obj})
+//PureComponent内部比较
+最新的state.obj === 上一次的state.obj //true，不重新渲染组件
+```
+
