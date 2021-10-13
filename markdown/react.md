@@ -2452,7 +2452,7 @@ setState({
 
 ​	· 对于引用类型来说：只比较对象的引用(地址)是否相同
 
-​	==· 注意：state或props中属性值为引用类型时，应该创建新数据，不要直接修改原始数据
+​	==· 注意：state或props中属性值为引用类型时，应该创建新数据，不要直接修改原始数据==
 
 ```
 const obj = {number:0}
@@ -2468,5 +2468,71 @@ state.obj.number = 2
 setState({obj:state.obj})
 //PureComponent内部比较
 最新的state.obj === 上一次的state.obj //true，不重新渲染组件
+```
+
+### 5 虚拟DOM和Diff算法
+
+​	· React更新视图的思想：只要state变化就重新渲染视图
+
+​	· 特点：思路清晰
+
+​	· 问题：组件中只有一个DOM元素需要更新时，也要把整个组件的内容重新渲染到页面中？ ==不是==
+
+​	· 理想状态：部分更新，只更新变化的地方
+
+​	· 问题：React是如何做到部分更新的？==虚拟DOM配合Diff算法==
+
+**虚拟DOM**
+
+​	本质上就是一个JS对象，用来描述你希望在屏幕上看到的内容(UI)
+
+**Diff算法**
+
+​	执行过程
+
+​		1 初次渲染时，React会根据初始state(Model)，创建一个虚拟DOM对象(树)
+
+​		2 根据虚拟DOM生成真正的DOM，渲染到页面中
+
+​		3 当数据变化后(setState())，重新根据新的数据，创建新的虚拟DOM对象(树)
+
+​		4 与上一次得到的虚拟DOM对象，使用Diff算法对比(找不同)，得到需要更新的内容
+
+​		5 最终，React只将变化的内容更新(patch)到DOM中，重新渲染到页面
+
+**代码演示**
+
+​	· 组件render()调用后，根据==状态==和==JSX结构==生成虚拟DOM对象
+
+```react
+class App extends React.Component{
+  state = {
+    number:0
+  }
+
+  handleClick = () => {
+    this.setState(() => {
+      return {
+        number:Math.floor(Math.random()*2)
+      }
+    })
+  }
+
+  //render方法调用并不意味着浏览器中的重新渲染！！！
+  //render方法调用仅仅说明要进行diff
+  render(){
+    const el = (
+      <div>
+        <h1>随机数</h1>
+        <p>{this.state.number}</p>
+        <button onClick={this.handleClick}>重新生成</button>
+      </div>
+    )
+
+    console.log('虚拟DOM对象',el)
+
+    return el
+  }
+}
 ```
 

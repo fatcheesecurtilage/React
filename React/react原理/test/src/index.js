@@ -123,43 +123,78 @@ import ReactDOM from 'react-dom';
 
 
 //nextprops
+// class App extends React.Component{
+//   state = {
+//     number:10
+//   }
+
+//   //重新生成函数
+//   handleClick = () => {
+//     this.setState({
+//       number:Math.ceil(Math.random()*2)
+//     })
+//   }
+
+//   render(){
+//     return(
+//       <div>
+//         <NumberBox number={this.state.number}></NumberBox>
+//         <button onClick={this.handleClick}>重新生成</button>
+//       </div>
+//     )
+//   }
+// }
+
+// class NumberBox extends React.Component{
+//     //是否重新渲染
+//     shouldComponentUpdate(nextProps,nextState){
+//       console.log('props',this.props,'nextprops',nextProps)
+//       if(this.props.number === nextProps.number){
+//         return false
+//       }
+//       return true
+//     }
+
+//   render(){
+//     console.log('render')
+//     return (
+//       <h1>随机数：{this.props.number}</h1>
+//     )
+//   }
+// }
+
+/*
+* 虚拟DOM和Diff算法
+*/
+
+//生成随机数
 class App extends React.Component{
   state = {
-    number:10
+    number:0
   }
 
-  //重新生成函数
   handleClick = () => {
-    this.setState({
-      number:Math.ceil(Math.random()*2)
+    this.setState(() => {
+      return {
+        number:Math.floor(Math.random()*2)
+      }
     })
   }
 
+  //render方法调用并不意味着浏览器中的重新渲染！！！
+  //render方法调用仅仅说明要进行diff
   render(){
-    return(
+    const el = (
       <div>
-        <NumberBox number={this.state.number}></NumberBox>
+        <h1>随机数</h1>
+        <p>{this.state.number}</p>
         <button onClick={this.handleClick}>重新生成</button>
       </div>
     )
-  }
-}
 
-class NumberBox extends React.Component{
-    //是否重新渲染
-    shouldComponentUpdate(nextProps,nextState){
-      console.log('props',this.props,'nextprops',nextProps)
-      if(this.props.number === nextProps.number){
-        return false
-      }
-      return true
-    }
+    console.log('虚拟DOM对象',el)
 
-  render(){
-    console.log('render')
-    return (
-      <h1>随机数：{this.props.number}</h1>
-    )
+    return el
   }
 }
 
