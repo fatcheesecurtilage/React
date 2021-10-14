@@ -2536,3 +2536,236 @@ class App extends React.Component{
 }
 ```
 
+
+
+# Rreact路由基础
+
+### 1 React路由介绍
+
+​	· 前端路由的功能：让用户从一个视图(页面)导航到另一个视图(页面)
+
+​	· 前端路由是一套映射规则，在React中，是URL路径与组件的对应关系
+
+​	· 使用React路由简单来说，就是配置路径和组件(配对)
+
+### 2 路由的基本使用
+
+#### 2.1 使用步骤
+
+​	1 安装：`yarn add react-router-dom`或者`npm add react-router-dom`
+
+​	2 导入路由的三个核心组件：Router/Route/Link
+
+```react
+import {BrowserRouter as Router,Route,Link} from 'react-router-dom'
+```
+
+​	3 使用Router组件包裹整个应用(重要)
+
+```react
+<Router>
+  <div>
+  	<h1>React路由基础</h1>
+  </div>
+</Router>
+```
+
+​	4 使用Link组件作为导航菜单(路由入口)
+
+```react
+<Link to='/first'>页面一</Link>
+```
+
+​	5 使用Route组件配置路由规则和要展示的组件(路由出口)
+
+```react
+<Route path="/first" component={First}></Route>
+```
+
+**完整代码**
+
+```react
+import React from 'react'
+import ReactDOM, { render } from 'react-dom'
+
+/*
+* react-router-dom的基本使用
+*/
+
+//导入组件
+import {BrowserRouter as Router,Route,Link} from 'react-router-dom'
+
+const First = () => {
+  return (
+    <div>
+      First
+    </div>
+  )
+}
+
+//使用Router组件包裹整个应用
+const App = () => {
+  return(
+    <Router>
+      <div>
+        <h1>React路由基础</h1>
+        {/* 指定路由入口 */}
+        <Link to='/first'>页面一</Link>
+
+        {/* 指定路由出口 */}
+        <Route path="/first" component={First}></Route>
+      </div>
+    </Router>
+  )
+}
+
+ReactDOM.render(<App/>,document.getElementById('root'))
+```
+
+#### 2.2 常用组件说明
+
+​	· **Router组件**：包裹整个应用，一个React应用只需要使用一次
+
+​	· 两种常用Router:HashRouter和BrowserRouter
+
+​	· HashRouter:使用URL的哈希值实现(localhost:3000/#/first)
+
+```react
+import {HashRouter as Router,Route,Link} from 'react-router-dom'
+```
+
+​	· (推荐)BrowserRouter：使用H5的history API实现(localhost:3000/first)
+
+​	· **Link组件**：用于指定导航链接(a 标签)
+
+```react
+//to属性：浏览器地址栏中的pathname(location.pathname)
+<Link to="/first">页面一</Link>
+```
+
+​	· **Route组件**：指定路由展示组件相关信息
+
+```react
+//path属性：路由规则
+//component属性：展示的组件
+//Route组件写在哪，渲染出来的组件就展示在哪
+<Route path="/first" component={First}></Route>
+```
+
+### 3 路由的执行过程
+
+​	1 点击Link组件(a 标签)，修改了浏览器地址栏中的url
+
+​	2 React路由监听到地址栏url的变化
+
+​	3 React路由内部遍历所有Route组件，使用路由规则(path)与pathname进行匹配
+
+​	4 当路由规则(path)能够匹配地址栏中的pathname时，就展示该Route组件的内容
+
+### 4 编程式导航
+
+​	· 场景：点击登录按钮，登录成功后，通过代码跳转到后台首页，如何实现
+
+​	· 编程式导航：通过js代码来实现页面跳转
+
+​	· history是React路由提供的，用于获取浏览器历史记录的相关信息
+
+​	· ==push(path)==:跳转到某个页面，参数path表示要跳转的路径
+
+​	· ==go(n)==:前进或后退到某个页面，参数n表示前进或后退页面数量(比如：-1表示后退到上一页)
+
+```react
+/*
+* 编程式导航
+*/
+
+import { BrowserRouter as Router,Route,Link} from 'react-router-dom'
+
+class Login extends React.Component{
+  handlelogin = () => {
+    //使用编程式导航实现路由跳转
+    this.props.history.push('/home')
+  }
+
+  render(){
+    return (
+      <div>
+        <p>登录界面</p>
+        <button onClick={this.handlelogin}>登录</button>
+      </div>
+    )
+  }
+}
+
+const Home = (props) => {
+  const handleback = () => {
+    props.history.go(-1)
+  }
+  return (
+    <div>
+      <h2>我是后台首页</h2>
+      <button onClick={handleback}>返回登录界面</button>
+    </div>
+  )
+}
+
+const App = () => (
+  <Router>
+    <div>
+      <h1>编程式导航：</h1>
+      <Link to="/login">去登录页面</Link>
+
+      <Route path="/login" component={Login}></Route>
+      <Route path="/home" component={Home}></Route>
+    </div>
+  </Router>
+)
+
+ReactDOM.render(<App/>,document.getElementById('root'))
+```
+
+### 5 默认路由
+
+​	· 问题：现在的路由都是点击导航菜单后展示的，如何在进入页面的时候就展示
+
+​	· 默认路由：表示进入页面时就会匹配的路由
+
+​	· 默认路由path为：==/==
+
+```react
+<Route path="/" component={Home}></Route>
+```
+
+### 6 匹配模式
+
+#### 6.1 模糊匹配模式
+
+​	· 问题：当Link组件的to属性值为'/login'时，为什么默认路由也会被匹配成功
+
+​	· 默认情况下，React路由时模糊匹配模式
+
+​	· 模糊匹配规则：只要pathname以path开头就会匹配成功
+
+**path代表Route组件的path属性**
+
+**pathname代表Link组件的to属性(也就是location.pathname)**
+
+| path   | 能够匹配的pathname  |
+| ------ | ------------------- |
+| /      | 所有pathname        |
+| /first | /first或/first/a... |
+
+#### 6.2 精确匹配
+
+​	· 问题：默认路由任何情况下都会展示，如何避免这种问题
+
+​	· 给Route组件添加==exact==属性，让其变为精确匹配模式
+
+```react
+//此时，该组件只能匹配pathname=“/”这一种情况
+<Route exact path="/" component=.../>
+```
+
+​	· 精确匹配：只有当path和pathname完全匹配时才会展示该路由
+
+​	· 推荐：给默认路由添加exact属性
