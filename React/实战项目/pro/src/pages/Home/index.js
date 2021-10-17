@@ -1,7 +1,7 @@
 import React from "react";
 import { Route } from "react-router-dom";
 import New from '../New'
-import Main from '../index'
+import Index from '../index'
 import HouseList  from "../HouseList";
 import Profile from "../Profile";
 // 导入tabbar组件
@@ -15,7 +15,7 @@ const tabItems = [
     {
         title:'首页',
         icon:'icon-ind',
-        path:'/home/index'
+        path:'/home'
     },
     {
         title:'找房',
@@ -39,6 +39,14 @@ export default class Home extends React.Component{
     state = {
       //默认选中的Tabbar菜单栏
       selectedTab: this.props.location.pathname,
+    }
+
+    componentDidUpdate(preProps){
+        if(this.props.location.pathname != preProps.location.pathname){
+            this.setState({
+                selectedTab:this.props.location.pathname
+            })
+        }
     }
 
     //渲染Tabbar.item
@@ -71,7 +79,7 @@ export default class Home extends React.Component{
             <div className='home'>
                 {/* 渲染子路由 */}
                 <Route path='/home/news' component={New}></Route>
-                <Route path='/home/index' component={Main} ></Route>
+                <Route exact path='/home' component={Index} ></Route>
                 <Route path='/home/list' component={HouseList}></Route>
                 <Route path='/home/profile' component={Profile}></Route>
                 {/* tabbar组件 */}

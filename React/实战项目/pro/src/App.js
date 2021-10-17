@@ -11,7 +11,7 @@ import React from 'react'
   4 使用Route组件配置首页和城市选择页面
 */
 
-import {BrowserRouter as Router,Route,Link} from 'react-router-dom'
+import {BrowserRouter as Router,Route,Redirect} from 'react-router-dom'
 
 //导入路由组件
 import Home from './pages/Home';
@@ -26,6 +26,7 @@ function App() {
         {/* <Link to='/home' >首页</Link>
         <Link to='/citylist' >城市选择</Link> */}
         {/* 配置路由 */}
+        <Route exact path='/' render={() => <Redirect to='/home' />}></Route>
         <Route path='/home' component={Home}></Route>
         <Route path='/citylist' component={CityList}></Route>
       </div>
