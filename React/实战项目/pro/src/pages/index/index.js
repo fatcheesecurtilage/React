@@ -3,7 +3,8 @@ import {
     Carousel,
     Flex,
     Grid,
-    List
+    List,
+    SearchBar
 } from 'antd-mobile';
 import './index.scss'
 import axios from 'axios';
@@ -128,7 +129,7 @@ export default class Main extends React.Component{
     renderNews(){
         return (
             this.state.newsmsg.map(item => (
-                <div className='newsitem'>
+                <div className='newsitem' key={item.id}>
                     <div className='newsleft'>
                         <img src={`http://192.168.31.217:8080${item.imgSrc}`} width="130"></img>
                     </div>
@@ -149,6 +150,21 @@ export default class Main extends React.Component{
     render(){
         return(
             <div >
+                {/* 搜索框 */}
+                <div className='searchbar'>
+                    <Flex className='searchbox'>
+                        <Flex.Item className='searcharea' onClick={() => this.props.history.push('/citylist')}>
+                            上海
+                            <i className='iconfont icon-arrow'></i>
+                        </Flex.Item>
+                        <div className='searchbarcenter' onClick={() => this.props.history.push('/search')}>
+                            <i className='iconfont icon-seach'></i>
+                            <span className='text'>请输入小区或地址</span>
+                        </div>
+                        <i className='iconfont icon-map seachmap' onClick={() => this.props.history.push('/map')}></i>
+                    </Flex>
+                </div>
+
                 {/* 轮播图 */}
                 <div className='swiperBox'>
                     {this.state.showSwiper?

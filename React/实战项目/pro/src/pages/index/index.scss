@@ -1,3 +1,53 @@
+.searchbar{
+    width: 100%;
+    position:absolute;
+    top: 10px;
+    z-index: 999;
+    padding: 10px;
+    box-sizing: border-box;
+    display: flex;
+    .searchbox{
+        width: 100%;
+        display: flex;
+        color: white;
+        .searcharea{
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
+            height: 30px;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: black;
+            i{
+                font-size: 10px;
+            }
+        }
+        .searchbarcenter{
+            flex: 4;
+            background-color: white;
+            height: 30px;
+            color: #cdcdcd;
+            display: flex;
+            align-items: center;
+            margin-left: -1px;
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+            i{
+                font-size: 12px;
+                margin-right: 5px;
+            }
+            input{
+                border:none
+            }
+            margin-right: 10px;
+        }
+        .seachmap{
+            margin-left: 10px;
+        }
+    }
+    
+}
 .swiperBox{
     height: 212px;
     width: 100%;
