@@ -1,0 +1,54 @@
+.citylist{
+    height: 100%;
+    padding-top: 45px;
+    .navbar{
+        margin-top: -45px;
+        background-color: #f5f5f5;
+    }
+    .am-navbar-left{
+        color: #333;
+    }
+}
+.city{
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    
+    .title{
+        width: 100%;
+        height: 36px;
+        line-height: 36px;
+        color: #cdcdcd;
+    }
+    .name{
+        width: 100%;
+        height: 50px;
+        line-height: 50px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+}
+//右侧索引
+.city-index{
+    position:absolute;
+    display: flex;
+    flex-direction: column;
+    right:5px;
+    z-index:1;
+    height: 90%;
+    box-sizing: border-box;
+    padding-top: 20px;
+    text-align: center;
+    .city-index-item{
+        flex: 1;
+    }
+    .index-active{
+        color: #fff;
+        background-color: #21b97a;
+        border-radius: 100%;
+        display: inline-block;
+        font-size: 12px;
+        width: 15px;
+        height: 15px;
+        line-height: 15px;
+    }
+}

@@ -15,6 +15,7 @@ import nav2 from '../../assets/Home/nav-2.png';
 import nav3 from '../../assets/Home/nav-3.png';
 import nav4 from '../../assets/Home/nav-4.png';
 
+import { getCurrentCity } from "../../utils";
 const Item = List.Item;
 export default class Main extends React.Component{
     state = {
@@ -48,7 +49,8 @@ export default class Main extends React.Component{
             }
         ],
         data1:[],
-        newsmsg:[]
+        newsmsg:[],
+        cityName:'hz',
     }
 
     //获取轮播图的方法
@@ -60,10 +62,25 @@ export default class Main extends React.Component{
         })
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         this.getSwipers();
         this.getGroupMsg();
         this.getNews();
+        // var myCity = new window.BMapGL.LocalCity();
+        // myCity.get(async res => {
+        //     // console.log('返回的参数',res)
+        //     const result = await axios.get(
+        //         `http://192.168.31.217:8080/area/info?name=${res.name}`
+        //     )
+        //     this.setState({
+        //         cityName:result.data.body.label
+        //     })
+        // })
+        const cityname = await getCurrentCity();
+        this.setState({
+            cityName:cityname.label
+        })
+
     }
 
     //渲染轮播图
@@ -147,6 +164,7 @@ export default class Main extends React.Component{
         )
     }
 
+
     render(){
         return(
             <div >
@@ -154,7 +172,7 @@ export default class Main extends React.Component{
                 <div className='searchbar'>
                     <Flex className='searchbox'>
                         <Flex.Item className='searcharea' onClick={() => this.props.history.push('/citylist')}>
-                            上海
+                            {this.state.cityName}
                             <i className='iconfont icon-arrow'></i>
                         </Flex.Item>
                         <div className='searchbarcenter' onClick={() => this.props.history.push('/search')}>

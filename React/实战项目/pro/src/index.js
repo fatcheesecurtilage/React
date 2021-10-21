@@ -13,6 +13,9 @@ import './assets/fonts/iconfont.css'
 
 import './index.css';
 
+//导入react-virtualized
+import 'react-virtualized/styles.css'
+
 ReactDOM.render(
     <App />,
   document.getElementById('root')
