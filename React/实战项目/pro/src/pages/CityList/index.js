@@ -1,5 +1,5 @@
 import React from "react";
-import { NavBar } from 'antd-mobile';
+import { NavBar,Toast } from 'antd-mobile';
 import '../../assets/fonts/iconfont.css'
 import './index.scss'
 import axios from "axios";
@@ -8,17 +8,22 @@ import { getCurrentCity } from "../../utils";
 
 //导入list组件
 import { List,AutoSizer } from "react-virtualized";
+import NavHeader from "../../components/NavHeader";
 
 // //列表数据大的数据源
 // const list = Array(100).fill('react')
 
+
+//导入css——modules样式
+import styles from './index.module.css'
 
 
 //索引的高度
 const TITLE_HEIGHT = 36
 //每个城市名称的高度
 const NAME_HRIGHT = 50
-
+//拥有数据的城市信息
+const HOT_CITY =['北京','上海','广州','深圳']
 
 //格式化数据的方法
 const formatCityData = (list) => {
@@ -70,6 +75,16 @@ export default class CityList extends React.Component{
         this.cityListComponent.current.measureAllRows()
     }
 
+    //修改城市信息
+    changeCity({label,value}){
+        if(HOT_CITY.indexOf(label) > -1){
+            localStorage.setItem('hkzf_city',JSON.stringify({label,value}))
+            this.props.history.go(-1)
+        }else{
+            Toast.info('暂无该城市信息',1)
+        }
+    }
+
     //获取城市列表
     async getCityList(){
         const res = await axios.get('http://192.168.31.217:8080/area/city?level=1')
@@ -114,7 +129,7 @@ export default class CityList extends React.Component{
                 <div className='title'>{formatCityIndex(letter)}</div>
                     {
                         cityletter.map(item => (
-                            <div className='name' key={item.value}>
+                            <div className='name' key={item.value} onClick={() => this.changeCity(item)}>
                                 {item.label}
                             </div>
                         ))
@@ -161,13 +176,17 @@ export default class CityList extends React.Component{
     render(){
         return (
             <div className='citylist'>
+                <div className={styles.test}>测试样式覆盖问题</div>
                 {/* 顶部导航栏 */}
-                <NavBar
+                {/* <NavBar
                     className='navbar'
                     mode="light"
                     icon={<i className='iconfont icon-back' />}
                     onLeftClick={() => this.props.history.go(-1)}
-                >城市选择</NavBar>
+                >城市选择</NavBar> */}
+                <NavHeader>
+                    城市选择
+                </NavHeader>
 
                 {/* 城市列表 */}
                 <AutoSizer>

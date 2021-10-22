@@ -182,7 +182,7 @@ export default class Main extends React.Component{
                         <i className='iconfont icon-map seachmap' onClick={() => this.props.history.push('/map')}></i>
                     </Flex>
                 </div>
-
+                <div className='test'>测试样式覆盖问题</div>
                 {/* 轮播图 */}
                 <div className='swiperBox'>
                     {this.state.showSwiper?
